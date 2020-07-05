@@ -121,6 +121,10 @@ partNames = {
 #folder to save files in:
 outputDir = 'python-script-output/'
 
+#resolution
+res_x = 200
+res_y = res_x
+
 #distance camera is from each object:
 camera_distance = 7
 
@@ -328,7 +332,7 @@ def headAngle_to_angle(x):
 def directionAndAngle_to_angle(dir, dirAngle, angle):
     return {
         Direction.LEFT: (dirAngle, 0, -angle),
-        Direction.BACK: (dirAngle, angle, 0),
+        Direction.BACK: (dirAngle, -angle, 0),
         Direction.RIGHT: (dirAngle, 0, angle),
         Direction.FORWARD: (dirAngle, angle, 0),
     }.get(dir)
@@ -349,8 +353,8 @@ def init():
     cameraDistance = 20
     
         
-    bpy.context.scene.render.resolution_x = 70
-    bpy.context.scene.render.resolution_y = 70
+    bpy.context.scene.render.resolution_x = res_x
+    bpy.context.scene.render.resolution_y = res_y
     
     render_all(get_lifestageSex_path_name(lifestage, sex, outputDir))
     
