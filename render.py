@@ -122,7 +122,7 @@ partNames = {
 outputDir = 'python-script-output/'
 
 #resolution
-res_x = 200
+res_x = 70
 res_y = res_x
 
 #distance camera is from each object:
@@ -841,9 +841,7 @@ def get_head_path_name(emotion, eyelids, direction, angle, pathName):
 
 
 def renderAngle(bodyPart, angleIn, pathname):
-    print(angleIn)
     angle = (angleIn[1], 0, angleIn[0])
-    print(angle)
     
     camera_location = mathutils.Vector((0, camera_distance, 0))
     camera_location.rotate(mathutils.Euler(bodyPart.rotation_euler))
@@ -857,33 +855,6 @@ def renderAngle(bodyPart, angleIn, pathname):
     
     bpy.context.scene.render.filepath = pathname
     bpy.ops.render.render(write_still = True)
-
-#def renderAngle(bodyPart, angle, pathname):
-#    
-#    angle = (angle[1], angle[0], angle[2])
-#    
-#    q1 = toQuaternion(bodyPart.rotation_euler)
-#    q2 = toQuaternion(angle)
-#    q3 = addQuaternions(q1, q2)
-#    final = toEuler(q3)
-#    
-#    roll = final[0]
-#    pitch = final[1]
-#    yaw = final[2]
-#    
-#    x = -math.cos(yaw)*math.sin(pitch)*math.sin(roll)-math.sin(yaw)*math.cos(roll)
-#    y = -math.sin(yaw)*math.sin(pitch)*math.sin(roll)+math.cos(yaw)*math.cos(roll)
-#    z =  math.cos(pitch)*math.sin(roll)
-#    
-#    position = Vector([
-#        bodyPart.location[0] + cameraDistance*x,
-#        bodyPart.location[1] + cameraDistance*y,
-#        bodyPart.location[2] + cameraDistance*z
-#    ])
-#    rotation = look_at(position, bodyPart.location)
-#    #rotation = (-angle[0], -angle[1], angle[2])
-
-#    renderAtPositionAngleToFile(camera, position, rotation, pathname)
 
 def look_at(obj, target, roll=0):
 
@@ -904,70 +875,10 @@ def look_at(obj, target, roll=0):
     obj.matrix_world = quat @ rollMatrix
     obj.location = loc
 
-def getImageDirName(bodyPartName, index):
-    return bodyPartName + '/' + str(index) + '.png'
-
-
 def renderAtPositionAngleToFile(camera, position, rotation, fileName):
     camera.location = position
     camera.rotation_euler = (rotation[0], rotation[1], rotation[2])
     bpy.context.scene.render.filepath = fileName
     bpy.ops.render.render(write_still = True)
-
-def toQuaternion(euler):
-    roll = euler[2]
-    pitch = euler[1]
-    yaw = euler[0]
-    
-    # yaw (Z), pitch (Y), roll (X)
-    # Abbreviations for the various angular functions
-    cy = math.cos(yaw * 0.5)
-    sy = math.sin(yaw * 0.5)
-    cp = math.cos(pitch * 0.5)
-    sp = math.sin(pitch * 0.5)
-    cr = math.cos(roll * 0.5)
-    sr = math.sin(roll * 0.5)
-
-    w = cr * cp * cy + sr * sp * sy
-    x = sr * cp * cy - cr * sp * sy
-    y = cr * sp * cy + sr * cp * sy
-    z = cr * cp * sy - sr * sp * cy
-
-    return (w, x, y, z)
-
-def addQuaternions(q1, q2):
-    return (
-        q1[0] + q2[0],
-        q1[1] + q2[1],
-        q1[2] + q2[2],
-        q1[3] + q2[3]
-    )
-
-def toEuler(quaternion):
-
-    w = quaternion[0]
-    x = quaternion[1]
-    y = quaternion[2]
-    z = quaternion[3]
-
-    # roll (x-axis rotation)
-    sinr_cosp = 2 * (w * x + y * z)
-    cosr_cosp = 1 - 2 * (x * x + y * y)
-    roll = math.atan2(sinr_cosp, cosr_cosp)
-
-    # pitch (y-axis rotation)
-    sinp = 2 * (w * y - z * x)
-    if (abs(sinp) >= 1):
-        pitch = math.copysign(3.14159 / 2, sinp); # use 90 degrees if out of range
-    else:
-        pitch = math.sin(sinp)
-
-    # yaw (z-axis rotation)
-    siny_cosp = 2 * (w * z + x * y)
-    cosy_cosp = 1 - 2 * (y * y + z * z)
-    yaw = math.atan2(siny_cosp, cosy_cosp)
-
-    return (yaw, roll, pitch)
-
 
 init()
