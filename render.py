@@ -570,6 +570,7 @@ def render_all(pathName):
 #    )
 
 def render_head(head, emotion, eyelids, pathName):
+    renderAllInvisibeExcept(head)
     pathName = pathName + 'A-Head/'
     render_head_direction(head, emotion, eyelids, Direction.RIGHT, pathName)
     render_head_direction(head, emotion, eyelids, Direction.LEFT, pathName)
@@ -874,6 +875,27 @@ def look_at(obj, target, roll=0):
     loc = loc.to_tuple()
     obj.matrix_world = quat @ rollMatrix
     obj.location = loc
+
+def renderAllInvisibeExcept(bodyParts):
+    for ob in bpy.data.objects:
+        makeInvisible(ob)
+    
+    for ob in bodyParts:
+        makeVisible(ob)
+    
+def makeVisible(ob):
+    ob.hide_render = False
+    for child in ob.children:
+        #call the function on the child to catch all its children
+        #as there is no ob.children_recursive attribute
+        makeVisible(child)
+        
+def makeInvisible(ob):
+    ob.hide_render = True
+    for child in ob.children:
+        #call the function on the child to catch all its children
+        #as there is no ob.children_recursive attribute
+        makeInvisible(child)
 
 def renderAtPositionAngleToFile(camera, position, rotation, fileName):
     camera.location = position
