@@ -5,6 +5,7 @@ from math import tau
 import mathutils
 from enum import Enum
 from random import random
+from sys import maxsize
 
 parts = {}
 
@@ -126,7 +127,7 @@ res_x = 70
 res_y = res_x
 
 #distance camera is from each object:
-camera_distance = 7
+camera_distance = 10
 
 #Begin script.
 camera = None
@@ -440,6 +441,8 @@ def get_lifestageSex_path_name(lifestage, sex, pathName):
     )
 
 def render_all(pathName):
+    locationPre = parts['body'][0].location.copy()
+    parts['body'][0].location = (0, 0, 0)
     rotationPre06 = remember_and_set_rotation(parts['body'])
     rotationPre07 = remember_and_set_rotation(parts['body-pregnant1'])
     rotationPre08 = remember_and_set_rotation(parts['body-pregnant2'])
@@ -698,6 +701,7 @@ def render_all(pathName):
     reset_rotation(parts['body-pregnant2'], rotationPre08)
     reset_rotation(parts['body-pregnant1'], rotationPre07)
     reset_rotation(parts['body'], rotationPre06)
+    parts['body'][0].location = locationPre
 
 
 def render_head(body, emotion, eyelids, pathName):
@@ -1009,16 +1013,86 @@ def reset_rotation(body, previous):
 def remember_and_set_location_visibility(body):
     renderAllInvisibeExcept(body)
     locationPre = body[0].location.copy()
+    parentPre = body[0].parent
+    body[0].parent = None
     body[0].location = (0, 0, 0)
-    return locationPre
+    return (locationPre, parentPre)
 
 def reset_location_visibility(body, previous):
-    body[0].location = previous
+    body[0].location = previous[0]
+    body[0].parent = previous[1]
 
+def get_center(body):
+    x_min = maxsize
+    x_max = -maxsize
+    y_min = maxsize
+    y_max = -maxsize
+    z_min = maxsize
+    z_max = -maxsize
+    for part in body:
+        print(part)
+        object_details = bounds(part)
+        if x_min > object_details.x.min:
+            x_min = object_details.x.min
+        if x_max < object_details.x.max:
+            x_max = object_details.x.max
+        if y_min > object_details.y.min:
+            y_min = object_details.y.min
+        if x_max < object_details.y.max:
+            y_max = object_details.y.max
+        if z_min > object_details.z.min:
+            z_min = object_details.z.min
+        if z_max < object_details.z.max:
+            z_max = object_details.z.max
+    print(str(x_min) + " " + str(x_max))
+    print(str(y_min) + " " + str(y_max))
+    print(str(z_min) + " " + str(z_max))
+    x = (x_min + x_max)/2
+    y = (y_min + y_max)/2
+    z = (z_min + z_max)/2
+    print(x)
+    print(y)
+    print(z)
+    return (x, y, z)
 
+def bounds(obj, local=False):
 
+    local_coords = obj.bound_box[:]
+    om = obj.matrix_world
 
+    if not local:
+        worldify = lambda p: om @ mathutils.Vector(p[:])
+        coords = [worldify(p).to_tuple() for p in local_coords]
+    else:
+        coords = [p[:] for p in local_coords]
 
+    rotated = zip(*coords[::-1])
+
+    push_axis = []
+    for (axis, _list) in zip('xyz', rotated):
+        info = lambda: None
+        info.max = max(_list)
+        info.min = min(_list)
+        info.distance = info.max - info.min
+        push_axis.append(info)
+
+    import collections
+
+    originals = dict(zip(['x', 'y', 'z'], push_axis))
+
+    o_details = collections.namedtuple('object_details', 'x y z')
+    return o_details(**originals)
+"""
+obj = bpy.context.object
+object_details = bounds(obj)
+
+a = object_details.z.max
+b = object_details.z.min
+c = object_details.z.distance
+
+print(a, b, c)
+
+"""
 
 
 
@@ -1069,7 +1143,7 @@ def renderAllInvisibeExcept(bodyParts):
             makeInvisible(ob)
 
     for ob in bodyParts:
-    makeVisible(ob)
+        makeVisible(ob)
 
 def makeVisible(ob):
     ob.hide_render = False
